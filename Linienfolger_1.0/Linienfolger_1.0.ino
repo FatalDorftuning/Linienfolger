@@ -82,12 +82,12 @@ void loop()
 {
 while (millis() < 10000)
 {
-  //Aufruf Kalibrierung
+  //Aufruf Kalibrierung, wenn Zykluszeit < 10s
   calibration();
 }
 while (millis() > 10000)
 {
-  //Aufruf PID
+  //Aufruf PID, wenn Zykluszeit > 10s
   pid();
 
 }
@@ -120,6 +120,7 @@ void pid()
 
   u = ((Kp * P) + (Ki * I) + (Kd * D));                        
   preverror = error;
+
   //Motordrehzahl berechnen
 
 
@@ -129,6 +130,8 @@ void pid()
   //Motordrehzahl begrenzen
   nA = constrain(nA, nmaxAneg, nmaxApos);
   nB = constrain(nB, nmaxBneg, nmaxBpos);
+
+
   //Motoransteuerung
   motor1.drive(nA,1);
   motor2.drive(nB,1);
@@ -140,13 +143,13 @@ void pid()
 
 
 
-//Funktion Kalibrierung
+//Funktion Kalibrierung, zum Kalibrieren Sensoren mehrmals per Hand über die Linie bewegen
 void calibration() 
 {
   unsigned long calibrationStartTime = millis();
   while (millis() - calibrationStartTime < 10000) {
-    motor1.drive(50);
-    motor2.drive(-50);
+    //motor1.drive(50);
+    //motor2.drive(-50);
     calibrateSensor(25, sensorMin1, sensorMax1);
     calibrateSensor(33, sensorMin2, sensorMax2);
     calibrateSensor(32, sensorMin3, sensorMax3);
@@ -155,6 +158,7 @@ void calibration()
   }
 }
 
+//Unterfunktion für die Zuordnung der Min/Max-Werte
 void calibrateSensor(int pin, int& sensorMin, int& sensorMax) {
   int sensorValue = analogRead(pin);
   if (sensorValue > sensorMax) {
