@@ -1,3 +1,4 @@
+//Bibliotheken
 #include <SparkFun_TB6612.h>
 #include "BluetoothSerial.h"
 BluetoothSerial SerialBT;
@@ -8,8 +9,9 @@ int On = 0;
 
 //Variablen Sensormapping
 
-int customMap(int x, int in_min, int in_max, int out_min, int out_max) {
-return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+int customMap(int x, int in_min, int in_max, int out_min, int out_max) 
+{
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
 
@@ -132,7 +134,7 @@ while (millis() > 10000)
   
 }
 
-
+//******************************************END MAIN************************************************************************
 //Funktion PID
 void pid()
 {
@@ -152,9 +154,9 @@ void pid()
   //PID
   P = error;
 
-  I = I + error;
+  I = I + error;                  //Aufsummierung in jedem Zyklus, nicht benutzen und ändern! Tn fehlt
 
-  D = error - preverror;
+  D = error - preverror;          //Tv integrieren
 
   u = ((Kp * P) + (Ki * I) + (Kd * D));                        
   preverror = error;
