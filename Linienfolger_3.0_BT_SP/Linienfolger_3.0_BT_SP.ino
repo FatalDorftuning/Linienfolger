@@ -148,13 +148,13 @@ void pid()
   error = x-2000;
 
   //PID
-  P = error;
+  P = error;                      //e(t) für P-Anteil
 
-  I = I + error;                  //Aufsummierung in jedem Zyklus, nicht benutzen und ändern! Tn fehlt
+  I = I + error;                  //e(t) für I-Anteil
 
-  D = error - preverror;          //Tv integrieren
+  D = error - preverror;          //e(t) für D-Anteil
 
-  u = ((Kp * P) + (Ki * I) + (Kd * D));  
+  u = ((Kp * P) + (Ki * I) + (Kd * D));  //Reglerausgangsgröße berechnen 
 
   preverror = error;
 
