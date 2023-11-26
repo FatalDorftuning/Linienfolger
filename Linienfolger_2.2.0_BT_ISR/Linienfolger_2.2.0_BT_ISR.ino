@@ -1,10 +1,6 @@
 //Bibliotheken
 #include <SparkFun_TB6612.h>
 #include "BluetoothSerial.h"
-#define _TIMERINTERRUPT_LOGLEVEL_     4
-#include <ESP32TimerInterrupt.h> 
-#define TIMER0_INTERVAL_MS        100
-#define TIMER0_DURATION_MS        10
 BluetoothSerial SerialBT;
 
 //Variablen Bluetooth
@@ -33,7 +29,7 @@ int sensorMax5 = 3800; //Wert, wenn Sensor5 "weiß" erkennt
 
 
 
-//Kalibrierte Sensorwerte
+//Abgeglichene Sensorwerte
 int sensorCal1 = 0; 
 int sensorCal2 = 0;
 int sensorCal3 = 0;
@@ -53,15 +49,6 @@ float Ki = 0.0 ;
 float Kd = 0.05;
 float u;
 float x;
-
-
-//Variablen Error-Ausgabe
-
-int error_feedback[100];
-int ie;
-
-// Mutex für kritische Abschnitte
-portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
 
 //Motordrehzahlen
 int nA, nB; //Last, errechnet
@@ -97,9 +84,6 @@ void setup()
   pinMode(34, INPUT);
   Serial.begin(115200);
   SerialBT.begin("Linienfolger");
-  void IRAM_ATTR onTimer();     
-  ESP32TimerInterrupt timer(0);                   // Interrupt definieren
-  //timer.attachInterruptInterval(100000, onTimer); // Interval in Mikrosekunden
 }
 
 
@@ -115,11 +99,6 @@ while (millis() > 10000)
 {
   //Einlesen der Bluetoothdaten
   if (SerialBT.available()) 
-  // Eintreten in kritischen Abschnitt
-  portENTER_CRITICAL(&mux);
-
-  // Deaktiviere den Timer-Interrupt
-  //timer0.detachInterrupt();
   {
     String command = SerialBT.readString();
     
@@ -144,16 +123,9 @@ while (millis() > 10000)
       On = command.substring(3).toInt();
       Serial.println("On/Off empfangen: " + String(On));
     }
-    // Aktiviere den Timer-Interrupt wieder
-    //timer0.attachInterrupt();
-
-    // Verlassen des kritischen Abschnitts
-    portEXIT_CRITICAL(&mux);
   }
   //Aufruf PID, wenn Zykluszeit > 10s
     pid();
- 
-  
 
 }
   
@@ -194,7 +166,7 @@ void pid()
 
  int i;
  i++;
- if (i=5)
+ if (i=50)
  {
   I=0;
  }
@@ -224,28 +196,24 @@ void pid()
 
 
 
-
 }
-
-
-
-//Funktion Kalibrierung, zum Kalibrieren Sensoren mehrmals per Hand über die Linie bewegen
-void calibration() 
+//Funktion Abgleich, zum Abgleichen Sensoren mehrmals per Hand über die Linie bewegen
+void compare() 
 {
   unsigned long calibrationStartTime = millis();
   while (millis() - calibrationStartTime < 10000) {
     //motor1.drive(50);
     //motor2.drive(-50);
-    calibrateSensor(25, sensorMin1, sensorMax1);
-    calibrateSensor(33, sensorMin2, sensorMax2);
-    calibrateSensor(32, sensorMin3, sensorMax3);
-    calibrateSensor(35, sensorMin4, sensorMax4);
-    calibrateSensor(34, sensorMin5, sensorMax5);
+    compareSensor(25, sensorMin1, sensorMax1);
+    compareSensor(33, sensorMin2, sensorMax2);
+    compareSensor(32, sensorMin3, sensorMax3);
+    compareSensor(35, sensorMin4, sensorMax4);
+    compareSensor(34, sensorMin5, sensorMax5);
   }
 }
 
 //Unterfunktion für die Zuordnung der Min/Max-Werte
-void calibrateSensor(int pin, int& sensorMin, int& sensorMax) {
+void compareSensor(int pin, int& sensorMin, int& sensorMax) {
   int sensorValue = analogRead(pin);
   if (sensorValue > sensorMax) {
     sensorMax = sensorValue;
@@ -253,19 +221,4 @@ void calibrateSensor(int pin, int& sensorMin, int& sensorMax) {
   if (sensorValue < sensorMin) {
     sensorMin = sensorValue;
   }
-}
-
-void IRAM_ATTR onTimer() {
-  // Eintreten in kritischen Abschnitt
-  portENTER_CRITICAL_ISR(&mux);
-
-  // Füge den aktuellen Wert von "error" zum Array hinzu
-  error_feedback[ie] = error;
-
-  // Inkrementiere den Index und setze ihn auf 0, wenn das Array voll ist
-  ie = (ie + 1) % 100;
-
-  // Verlassen des kritischen Abschnitts
-  portEXIT_CRITICAL_ISR(&mux);
-
 }
