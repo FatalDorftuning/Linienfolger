@@ -1,4 +1,10 @@
 #include <SparkFun_TB6612.h>
+#include "BluetoothSerial.h"
+BluetoothSerial SerialBT;
+
+//Variablen Bluetooth
+String device_name = "Linienfolger";
+int On = 0;
 
 //Variablen Sensormapping
 
@@ -36,8 +42,8 @@ int I;
 int D;
 int error;
 int preverror;
-float Kp = 0.45;
-float Ki = 0;
+float Kp = 0.45 ;
+float Ki = 0.0 ;
 float Kd = 0.05;
 float u;
 float x;
@@ -45,12 +51,12 @@ float x;
 
 //Motordrehzahlen
 int nA, nB; //Last, errechnet
-int ngA = 75; //Grundlast
-int ngB = 75;
-int nmaxApos = 115; //maximale Last
-int nmaxBpos = 115;
-int nmaxAneg = -115;
-int nmaxBneg = -115; 
+int ngA = 68; //Grundlast
+int ngB = 68;
+int nmaxApos = 90; //maximale Last
+int nmaxBpos = 90;
+int nmaxAneg = -90;
+int nmaxBneg = -90; 
 
 
 //Motordriver-Pins
@@ -75,7 +81,10 @@ void setup()
   pinMode(32, INPUT);
   pinMode(35, INPUT);
   pinMode(34, INPUT);
+  Serial.begin(115200);
+  SerialBT.begin("Linienfolger");
 }
+
 
 
 void loop()
@@ -87,8 +96,37 @@ while (millis() < 10000)
 }
 while (millis() > 10000)
 {
+  //Einlesen der Bluetoothdaten
+  if (SerialBT.available()) 
+  {
+    String command = SerialBT.readString();
+    
+    // Überprüfe, ob der empfangene String Kp, Ki oder Kd enthält
+    if (command.startsWith("Kp:")) 
+    {
+      Kp = command.substring(3).toFloat();                     //Umrechnen von String zu Float
+      Serial.println("P-Wert empfangen: " + String(Kp));
+    } 
+    else if (command.startsWith("Ki:")) 
+    {
+      Ki = command.substring(3).toFloat();
+      Serial.println("I-Wert empfangen: " + String(Ki));
+    } 
+    else if (command.startsWith("Kd:")) 
+    {
+      Kd = command.substring(3).toFloat();
+      Serial.println("D-Wert empfangen: " + String(Kd));
+    }
+    else if (command.startsWith("On:")) 
+    {
+      On = command.substring(3).toInt();
+      Serial.println("On/Off empfangen: " + String(On));
+    }
+  }
   //Aufruf PID, wenn Zykluszeit > 10s
-  pid();
+    pid();
+ 
+  
 
 }
   
@@ -123,9 +161,17 @@ void pid()
 
   //Motordrehzahl berechnen
 
-
+ if (On == 1)
+ {
   nA = ngA - u;
   nB = ngB + u;
+ }
+ else
+ {
+  nA = 0;
+  nB = 0;
+ }
+
 
   //Motordrehzahl begrenzen
   nA = constrain(nA, nmaxAneg, nmaxApos);

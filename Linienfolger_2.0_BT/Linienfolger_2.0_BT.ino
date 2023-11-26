@@ -53,12 +53,12 @@ float x;
 
 //Motordrehzahlen
 int nA, nB; //Last, errechnet
-int ngA = 68; //Grundlast
-int ngB = 68;
-int nmaxApos = 90; //maximale Last
-int nmaxBpos = 90;
-int nmaxAneg = -90;
-int nmaxBneg = -90; 
+int ngA = 60; //Grundlast
+int ngB = 60;
+int nmaxApos = 80; //maximale Last
+int nmaxBpos = 80;
+int nmaxAneg = -30;
+int nmaxBneg = -30; 
 
 
 //Motordriver-Pins
@@ -140,11 +140,11 @@ void pid()
 {
   
   //Linearisierung Sensorsignal
-  sensorCal1 = customMap(analogRead(25), sensorMin1, sensorMax1, 300, 1200);
-  sensorCal2 = customMap(analogRead(33), sensorMin2, sensorMax2, 300, 1200);
-  sensorCal3 = customMap(analogRead(32), sensorMin3, sensorMax3, 300, 1200);
-  sensorCal4 = customMap(analogRead(35), sensorMin4, sensorMax4, 300, 1200);
-  sensorCal5 = customMap(analogRead(34), sensorMin5, sensorMax5, 300, 1200);
+  sensorCal1 = customMap(analogRead(25), sensorMin1, sensorMax1, 100, 1000);
+  sensorCal2 = customMap(analogRead(33), sensorMin2, sensorMax2, 100, 1000);
+  sensorCal3 = customMap(analogRead(32), sensorMin3, sensorMax3, 100, 1000);
+  sensorCal4 = customMap(analogRead(35), sensorMin4, sensorMax4, 100, 1000);
+  sensorCal5 = customMap(analogRead(34), sensorMin5, sensorMax5, 100, 1000);
 
   //Position berechenen
   int sumCal = sensorCal1 + sensorCal2 + sensorCal3 + sensorCal4 + sensorCal5;
